@@ -1,0 +1,16 @@
+cradle:
+  multi:
+    - path: "./.stack-work"
+      config:
+        cradle:
+          none:
+    - path: "./"
+      config:
+        cradle:
+          stack:
+            - path: "./src"
+              component: "AoC:lib"
+            - path: "./app"
+              component: "AoC:AoC-exe"
+            - path: "./test"
+              component: "AoC:AoC-test"

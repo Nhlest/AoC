@@ -1,0 +1,47 @@
+name:                AoC
+version:             0.1.0.0
+github:              "Nhlest/AoC"
+license:             MIT
+author:              "N`hlest"
+maintainer:          "flutterlice@gmail.com"
+copyright:           "2020 N`hlest"
+
+extra-source-files: []
+
+description:         Advent of Code (but in haskell)
+
+dependencies:
+- base >= 4.7 && < 5
+
+default-extensions:
+- FlexibleContexts
+- ScopedTypeVariables
+- RankNTypes
+
+library:
+  source-dirs: src
+
+executables:
+  AoC-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -O2
+    dependencies:
+    - AoC
+
+tests:
+  AoC-test:
+    main:                Tests.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck

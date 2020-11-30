@@ -1,0 +1,65 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 66e469bc1dfdefe99f284c6b78b74590284e5d8101a18eecf6818750c16e886d
+
+name:           AoC
+version:        0.1.0.0
+description:    Advent of Code (but in haskell)
+homepage:       https://github.com/Nhlest/AoC-h#readme
+bug-reports:    https://github.com/Nhlest/AoC-h/issues
+author:         N`hlest
+maintainer:     flutterlice@gmail.com
+copyright:      2020 N`hlest
+license:        MIT
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/Nhlest/AoC-h
+
+library
+  exposed-modules:
+      AoCTest
+  other-modules:
+      Paths_AoC
+  hs-source-dirs:
+      src
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable AoC-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_AoC
+  hs-source-dirs:
+      app
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  ghc-options: -threaded -rtsopts -O2
+  build-depends:
+      AoC
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+test-suite AoC-test
+  type: exitcode-stdio-1.0
+  main-is: Tests.hs
+  other-modules:
+      AocTest_Test
+      Paths_AoC
+  hs-source-dirs:
+      test
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      AoC
+    , base >=4.7 && <5
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+  default-language: Haskell2010

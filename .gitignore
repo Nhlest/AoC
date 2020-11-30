@@ -1,0 +1,4 @@
+elixir/_build/
+elixir/.formatter.exs
+haskek/.stack-work
+haskek/stack.yaml.lock
