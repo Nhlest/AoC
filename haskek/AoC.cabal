@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 66e469bc1dfdefe99f284c6b78b74590284e5d8101a18eecf6818750c16e886d
+-- hash: 294a599cc14544c8075ac4e495006edd4ab40b1d4d30d952956eac9ddc4ee788
 
 name:           AoC
 version:        0.1.0.0
 description:    Advent of Code (but in haskell)
-homepage:       https://github.com/Nhlest/AoC-h#readme
-bug-reports:    https://github.com/Nhlest/AoC-h/issues
+homepage:       https://github.com/Nhlest/AoC#readme
+bug-reports:    https://github.com/Nhlest/AoC/issues
 author:         N`hlest
 maintainer:     flutterlice@gmail.com
 copyright:      2020 N`hlest
@@ -19,7 +19,7 @@ build-type:     Simple
 
 source-repository head
   type: git
-  location: https://github.com/Nhlest/AoC-h
+  location: https://github.com/Nhlest/AoC
 
 library
   exposed-modules:
