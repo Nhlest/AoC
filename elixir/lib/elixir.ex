@@ -11,8 +11,8 @@ defmodule Pepega do
   def sample_function([]), do: []
   def sample_function([x|[]]), do: [x]
   def sample_function([x|xs]) do
-    lower = Enum.filter(xs, fn(n) -> n < x  end)
-    higher = Enum.filter(xs, fn(n) -> n > x  end)
-    sample_function(lower) ++  [x] ++ sample_function(higher)
+    sample_function(for n <- xs, n < x , do: n)
+    ++ [x] ++
+    sample_function(for n <- xs, n >= x, do: n)
   end
 end
