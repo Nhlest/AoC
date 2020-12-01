@@ -1,6 +1,6 @@
 # Advent of Code 2020 solutions by N`hlest
 
-Using haskell elixir and zsh {first 2 as a priority, last one as far as i can manage}
+Using haskell and elixir {first one as a priority, last one as far as i can manage}
 
 ## How to run
 
@@ -20,10 +20,3 @@ iex> Pepega.sample_function([3,2,1])
 ```
 
 TODO: proper command line application with argument parsing
-
-### Zsh
-
-```shell
-./run.zsh
-zunit # To run tests
-```
