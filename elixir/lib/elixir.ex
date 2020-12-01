@@ -15,4 +15,5 @@ defmodule Pepega do
     ++ [x] ++
     sample_function(for n <- xs, n >= x, do: n)
   end
+  def pepega(), do: fn x -> fn y -> x+y end end
 end
