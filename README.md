@@ -9,6 +9,7 @@ Using haskell and elixir {first one as a priority, last one as far as i can mana
 ```shell
 stack run -- <list of modules to run or leave empty to run them all sequentially>
 stack test # To run tests
+stack test --ta '-p "01"' # To run tests for first day only
 ```
 
 ### Elixir
