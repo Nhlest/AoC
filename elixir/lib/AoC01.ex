@@ -17,11 +17,11 @@ defmodule AoC01 do
       {:nothing}
   """
   import Util
-  def supliments(target, x, xs), do: Enum.filter(xs, fn y -> y == target - x end)
+  def complements(target, x, xs), do: Enum.filter(xs, fn y -> y == target - x end)
   def solve(_ ,[]), do: nothing()
   def solve(target, [x|xs]), do: (cond do
-     supliments(target, x, xs) |> null -> solve(target, xs)
-     true                              -> just(x * hd(supliments(target, x, xs)))
+     complements(target, x, xs) |> null -> solve(target, xs)
+     true                              -> just(x * hd(complements(target, x, xs)))
   end)
 
   def solves(_, _, []), do: nothing()

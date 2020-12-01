@@ -5,9 +5,9 @@ import Util
 -- | Maybe finds two numbers from a list that give `target` in sum and multiplies them
 aoc01 :: Int -> [Int] -> Maybe Int
 aoc01 _ [] = Nothing
-aoc01 target (x:xs) | null supliments = aoc01 target xs
-                    | otherwise       = Just $ x * head supliments
-  where supliments = filter (==target-x) xs
+aoc01 target (x:xs) | null complements = aoc01 target xs
+                    | otherwise       = Just $ x * head complements
+  where complements = filter (==target-x) xs
 
 -- | Maybe finds `count` numbers from a list that give `target` in sum and multiplies them
 aoc01s :: Int -> Int -> [Int] -> Maybe Int
