@@ -4,15 +4,20 @@ import System.Environment
 import Control.Monad
 
 import AoCTest
+import AoC01
+import Util
 
-allModules = [("aoctest", runAoCTest), ("aoctest2", runAoCTest)]
+allModules = [("aoctest", runAoCTest, "aoctest"),
+              ("aoctest2", runAoCTest, "aoctest"), 
+              ("aoc01", runAoC01, "aoc01"), 
+              ("aoc01s", runAoC01s, "aoc01")]
 
 main = do 
   args <- getArgs
   let cases_to_run = case args of
-                       [] -> map snd allModules
+                       [] -> map (\(a,b,c) -> (runWithFile b c)) allModules
                        x -> intersectBy x allModules
   forM_ cases_to_run id
  where intersectBy _ [] = []
-       intersectBy to ((x, f):xs) | x `elem` to = f : intersectBy to xs
-                                  | otherwise   = intersectBy to xs
+       intersectBy to ((x, f, l):xs) | x `elem` to = (runWithFile f l) : intersectBy to xs
+                                     | otherwise   = intersectBy to xs

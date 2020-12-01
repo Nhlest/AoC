@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 294a599cc14544c8075ac4e495006edd4ab40b1d4d30d952956eac9ddc4ee788
+-- hash: b07d923c8cc6ed2d1a97c59b378259dbc1cc4878c8bc30116b3af13d3cec2593
 
 name:           AoC
 version:        0.1.0.0
@@ -23,7 +23,9 @@ source-repository head
 
 library
   exposed-modules:
+      AoC01
       AoCTest
+      Util
   other-modules:
       Paths_AoC
   hs-source-dirs:
@@ -50,6 +52,7 @@ test-suite AoC-test
   type: exitcode-stdio-1.0
   main-is: Tests.hs
   other-modules:
+      AoC01_Test
       AocTest_Test
       Paths_AoC
   hs-source-dirs:
