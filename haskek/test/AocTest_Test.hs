@@ -29,12 +29,32 @@ test2 = testGroup "UnitTests for aocTest" [
 
 testParser :: TestTree
 testParser = testGroup "UnitTests for Parser" [
-    testProperty "[PAR] Should, indeed, parse" $ forAll sampleGenerator (\(ruleset, string, result) -> (==) result $ parseUniversal ruleset string)
+    testProperty "[PAR] Should, indeed, parse" $ forAllShrink sampleGenerator shrinkage (\(ruleset, string, result, _) -> (==) result $ parseUniversal ruleset string)
   ]
 
-parserGenerator :: Gen [ParseRule]
+deleteAt idx xs = lft ++ rgt
+  where (lft, (_:rgt)) = splitAt idx xs
+
+shrinkage :: ([ParseRule], String, [[ParseResult]], [[ParseRule]]) -> [([ParseRule], String, [[ParseResult]], [[ParseRule]])]
+shrinkage (_, _, _, s) | length s <= 2 = []
+                       | otherwise = map (\a -> let (b,c) = generateStringAndResultFromRuleSet' (concat a) in (concat a, b, [c], a)) shrinks
+  where shrinks = map (\a -> deleteAt a s) [0..length s] 
+
+-- TODO: proper shrinkage and not this pepega workaround
+generateStringAndResultFromRuleSet' :: [ParseRule] -> (String, [ParseResult])
+generateStringAndResultFromRuleSet' rules = do
+  let (s, r) = unzip $ map (\case
+        PRWhitespace -> ("   ", Nothing)
+        PRToken tok -> (tok, Nothing)
+        PRWord -> ("asdf", Just $ ResultWord "asdf")
+        PRNumber -> ("123", Just $ ResultNumber "123")
+        PRChar -> (['a'], Just $ ResultChar 'a')
+       ) rules in (concat s, catMaybes r)
+
+parserGenerator :: Gen ([ParseRule], [[ParseRule]])
 parserGenerator = do
-  concat <$> listOf1 (oneof [generateNumber, generateToken, generateWord, generateChar])
+  a <- listOf1 (oneof [generateNumber, generateToken, generateWord, generateChar])
+  pure (concat a, a)
  where generateNumber = oneof [pure [PRNumber, PRWhitespace], pure [PRNumber, PRToken "-"]]
        generateToken  = pure . PRToken <$> listOf1 (oneof $ map pure "asdf-+:")
        generateWord   = pure [PRWord, PRWhitespace]
@@ -57,8 +77,8 @@ generateStringAndResultFromRuleSet rules = do
     )
   pure (concat s, catMaybes r)
 
-sampleGenerator :: Gen([ParseRule], String, [[ParseResult]])
+sampleGenerator :: Gen([ParseRule], String, [[ParseResult]], [[ParseRule]])
 sampleGenerator = do
-  a <- parserGenerator
+  (a, dbg) <- parserGenerator
   (b, c) <- generateStringAndResultFromRuleSet a
-  pure (a, b, [c])
+  pure (a, b, [c], dbg)
