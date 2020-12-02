@@ -7,6 +7,6 @@ import AoC01_Test
 import AoC02_Test
 
 tests :: TestTree
-tests = testGroup "Tests" [test1, test2, test_aoc01, test_aoc02]
+tests = testGroup "Tests" [test1, test2, test_aoc01, test_aoc02, testParser]
 
 main = defaultMain tests
