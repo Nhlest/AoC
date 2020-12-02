@@ -5,12 +5,15 @@ import Control.Monad
 
 import AoCTest
 import AoC01
+import AoC02
 import Util
 
 allModules = [("aoctest", runAoCTest, "aoctest"),
               ("aoctest2", runAoCTest, "aoctest"), 
               ("aoc01", runAoC01, "aoc01"), 
-              ("aoc01s", runAoC01s, "aoc01")]
+              ("aoc01s", runAoC01s, "aoc01"),
+              ("aoc02", runAoC02, "aoc02"),
+              ("aoc02s", runAoC02s, "aoc02")]
 
 main = do 
   args <- getArgs
