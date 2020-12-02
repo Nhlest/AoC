@@ -1,9 +1,6 @@
 module AoC02 where
 
-xor True True   = False
-xor True False  = True
-xor False True  = True
-xor False False = False
+import Util
 
 data Policy   = Policy Int Int Char
 type Password = String
@@ -25,21 +22,13 @@ aoc02s ((Policy lower higher chr, pw):ps) = isValid + aoc02s ps
        sn = pw !! (higher - 1) == chr
 
 runAoC02 input = do
-  let arrToDo = parseAsRows $ lines input
-  print $ aoc02 arrToDo
+  let arrOfTokens = parseUniversal [PRNumber, PRToken "-", PRNumber, PRWhitespace, PRChar, PRToken ":", PRWhitespace, PRWord, PRWhitespace] input
+  let arrToCheck = map (\[ResultNumber l, ResultNumber h, ResultChar c, ResultWord w] -> (Policy (read l) (read h) c, w)) arrOfTokens
+  print $ aoc02 arrToCheck
   pure ()
 
 runAoC02s input = do
-  let arrToDo = parseAsRows $ lines input
-  print $ aoc02s arrToDo
+  let arrOfTokens = parseUniversal [PRNumber, PRToken "-", PRNumber, PRWhitespace, PRChar, PRToken ":", PRWhitespace, PRWord, PRWhitespace] input
+  let arrToCheck = map (\[ResultNumber l, ResultNumber h, ResultChar c, ResultWord w] -> (Policy (read l) (read h) c, w)) arrOfTokens
+  print $ aoc02s arrToCheck
   pure ()
-
-parseAsRows :: [String] -> [(Policy, [Char])]
-parseAsRows = map (parseRow . words)
-parseRow :: [[Char]] -> (Policy, [Char])
-parseRow [bounds, [char, ':'], pw] = 
-  let (l, h) = parseBounds 0 bounds 
-  in  (Policy l h char, pw)
-parseBounds :: Int -> [Char] -> (Int, Int)
-parseBounds a ('-':xs) = (a, read xs)
-parseBounds a (c  :xs) = parseBounds (a*10+read [c]) xs

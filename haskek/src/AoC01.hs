@@ -9,7 +9,7 @@ type Product     = Int
 aoc01 :: Int -> [Int] -> Maybe (AnswerGroup, Product)
 aoc01 _ [] = Nothing
 aoc01 target (x:xs) | null complements = aoc01 target xs
-                    | otherwise        = Just $ ([x, head complements], x * head complements)
+                    | otherwise        = Just ([x, head complements], x * head complements)
   where complements = filter (==target-x) xs
 
 -- | Maybe finds `count` numbers from a list that give `target` in sum and multiplies them
@@ -22,9 +22,11 @@ aoc01s count target l@(x:xs) | count < 2  = Nothing
                                               Just (ys, yp)  -> Just (x:ys, x * yp)
 
 runAoC01 input = do
-  let arrToSort = parseAsInts Nothing input
-  print $ aoc01 2020 arrToSort
+  let arrOfTokens = parseUniversal [PRNumber, PRWhitespace] input
+  let arrToCheck = map (\[ResultNumber n] -> read n) arrOfTokens
+  print $ aoc01 2020 arrToCheck
 
 runAoC01s input = do
-  let arrToSort = parseAsInts Nothing input
-  print $ aoc01s 3 2020 arrToSort
+  let arrOfTokens = parseUniversal [PRNumber, PRWhitespace] input
+  let arrToCheck = map (\[ResultNumber n] -> read n) arrOfTokens
+  print $ aoc01s 3 2020 arrToCheck
