@@ -1,6 +1,7 @@
 module AoC02 where
 
 import Util
+import Data.Either
 
 data Policy   = Policy Int Int Char
 type Password = String
@@ -21,14 +22,16 @@ aoc02s ((Policy lower higher chr, pw):ps) = isValid + aoc02s ps
        fs = pw !! (lower  - 1) == chr
        sn = pw !! (higher - 1) == chr
 
+data PolicyToken = PolNum Int | PolChar Char | PolWord String
+
 runAoC02 input = do
-  let arrOfTokens = parseUniversal [PRNumber, PRToken "-", PRNumber, PRWhitespace, PRChar, PRToken ":", PRWhitespace, PRWord, PRWhitespace] input
-  let arrToCheck = map (\[ResultNumber l, ResultNumber h, ResultChar c, ResultWord w] -> (Policy (read l) (read h) c, w)) arrOfTokens
-  print $ aoc02 arrToCheck
+  let arrToCheck = parseUniversal [PRNumber PolNum, PRTokenSilent "-", PRNumber PolNum, PRWhitespace, PRChar PolChar, PRTokenSilent ":", PRWhitespace, PRWord PolWord, PRWhitespace] 
+                    (\[PolNum l, PolNum h, PolChar c, PolWord w] -> (Policy l h c, w)) input
+  print $ aoc02 $ fromRight [] arrToCheck
   pure ()
 
 runAoC02s input = do
-  let arrOfTokens = parseUniversal [PRNumber, PRToken "-", PRNumber, PRWhitespace, PRChar, PRToken ":", PRWhitespace, PRWord, PRWhitespace] input
-  let arrToCheck = map (\[ResultNumber l, ResultNumber h, ResultChar c, ResultWord w] -> (Policy (read l) (read h) c, w)) arrOfTokens
-  print $ aoc02s arrToCheck
+  let arrToCheck = parseUniversal [PRNumber PolNum, PRTokenSilent "-", PRNumber PolNum, PRWhitespace, PRChar PolChar, PRTokenSilent ":", PRWhitespace, PRWord PolWord, PRWhitespace] 
+                    (\[PolNum l, PolNum h, PolChar c, PolWord w] -> (Policy l h c, w)) input
+  print $ aoc02s $ fromRight [] arrToCheck
   pure ()

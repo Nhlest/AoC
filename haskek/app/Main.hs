@@ -10,7 +10,7 @@ import AoC03
 import Util
 
 allModules = [("aoctest", runAoCTest, "aoctest"),
-              ("aoctest2", runAoCTest, "aoctest"), 
+              ("aoctest2", runAoCTest, "aoctest"),
               ("aoc01", runAoC01, "aoc01"), 
               ("aoc01s", runAoC01s, "aoc01"),
               ("aoc02", runAoC02, "aoc02"),

@@ -1,6 +1,7 @@
 module AoCTest where
 
 import Util
+import Data.Either
 
 -- | Test function in preparation for AoC, should sort an array of Integers
 aocTest :: [Int] -> [Int]
@@ -10,5 +11,5 @@ aocTest (x:xs)       = less_than ++ [x] ++ greater_than
         greater_than = aocTest [y | y <- xs, y > x]
 
 runAoCTest input = do
-  let arrToSort = map (\[ResultNumber n] -> read n) $ parseUniversal [PRNumber, PRWhitespace] input
+  let arrToSort = fromRight [] $ parseUniversal [PRNumber id, PRWhitespace] head input
   print $ aocTest arrToSort

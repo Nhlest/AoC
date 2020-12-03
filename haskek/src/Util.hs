@@ -4,6 +4,7 @@ module Util where
 import System.IO
 import Data.Char
 import Data.List
+import Data.Either
 
 xor True True   = False
 xor True False  = True
@@ -16,49 +17,69 @@ runWithFile f fname = do
   f input
   hClose input_file
 
-data ParseRule = PRToken String | PRNumber | PRChar | PRWhitespace | PRWord deriving Show
-data ParseResult = ResultToken String | ResultNumber String | ResultChar Char | ResultWord String | ResultOk | ResultErr String
-  deriving (Show, Eq)
-
 isWhitespace :: Char -> Bool
 isWhitespace ' '  = True
 isWhitespace '\n' = True
 isWhitespace '\t' = True
 isWhitespace _    = False
 
-data RetainTokens = DoRetain | DoNotRetain deriving Eq
+data ParseError = PError | PErrorS String deriving (Show, Eq)
+data ParseRule a = 
+    PRWhitespace
+  | PRToken      String (String -> a)
+  | PRTokenSilent        String
+  | PRWord              (String -> a)
+  | PRNumber            (Int    -> a)
+  | PRChar              (Char   -> a)
+  | PREither [ParseRule a]
+  | PRMany (ParseRule a)
 
-parseNextToken :: ParseRule -> String -> RetainTokens -> (ParseResult, String)
-parseNextToken PRWhitespace [] _ = (ResultOk, [])
-parseNextToken PRWhitespace (x:xs) r | isWhitespace x = let (_, nexts) = parseNextToken PRWhitespace xs r in
-                                                        (ResultOk, nexts)
-                                     | otherwise      = (ResultErr "whitespace", x:xs)
-parseNextToken PRWord (x:xs) r | isWhitespace x = (ResultErr "word", x:xs)
-                               | otherwise      = let (nextres, nextstr) = parseNextToken PRWord xs r in
-                                                       case nextres of
-                                                         ResultErr _  -> (ResultWord [x], nextstr)
-                                                         ResultWord w -> (ResultWord (x:w), nextstr)
-                                                         _            -> (ResultErr "word", nextstr)
-parseNextToken (PRToken []) s _ = (ResultOk, s)
-parseNextToken (PRToken (sx:ss)) (x:xs) r | x /= sx = (ResultErr "token", xs)
-                                          | x == sx = let (nextres, nextstr) = parseNextToken (PRToken ss) xs r in
-                                                           case nextres of
-                                                             ResultOk           -> (if r == DoRetain then ResultToken [sx] else ResultOk, nextstr)
-                                                             ResultToken nexts  -> (if r == DoRetain then ResultToken (sx:nexts) else ResultOk, nextstr)
-                                                             _                  -> (ResultErr "token", nextstr)
-parseNextToken PRNumber (x:xs) r | isDigit x = let (nextres, nextstr) = parseNextToken PRNumber xs r in
-                                                      case nextres of
-                                                        ResultErr _    -> (ResultNumber [x], nextstr)
-                                                        ResultNumber n -> (ResultNumber (x:n), nextstr)
-                                                        _              -> (ResultErr "number", nextstr)
-                                 | otherwise = (ResultErr "number", x:xs)
-parseNextToken PRChar (x:xs) _ = (ResultChar x, xs)
-parseNextToken PRChar [] _ = (ResultErr "char", [])
-parseNextToken _ [] _ = (ResultErr "misc", [])
+tryParse :: ParseRule a -> String -> Either ParseError ([a], String)
+tryParse PRWhitespace [] = Right ([], [])
+tryParse _ [] = Left PError
+tryParse PRWhitespace (x:xs) | isWhitespace x = Right ([], dropWhile isWhitespace xs)
+                             | otherwise      = Left PError
+tryParse (PRToken token trans) (xs) = case go token xs of
+                                        Just rest -> Right ([trans token], rest)
+                                        Nothing   -> Left PError
+ where go [] rest = Just rest
+       go _ []    = Nothing
+       go (t:ts) (x:xs) | x == t    = go ts xs
+                        | otherwise = Nothing
+tryParse (PRTokenSilent token) (xs) = case go token xs of
+                                        Just rest -> Right ([], rest)
+                                        Nothing   -> Left PError
+ where go [] rest = Just rest
+       go _ []    = Nothing
+       go (t:ts) (x:xs) | x == t    = go ts xs
+                        | otherwise = Nothing
+tryParse (PRWord trans) (x:xs) | isAlphaNum x = Right ([trans $ takeWhile isAlphaNum (x:xs)], dropWhile isAlphaNum (x:xs))
+                               | otherwise    = Left PError
+tryParse (PRNumber trans) (x:xs) | isNumber x = Right ([trans $ read $ takeWhile isNumber (x:xs)], dropWhile isNumber (x:xs))
+                                 | otherwise  = Left PError
+tryParse (PRChar trans) (x:xs) = Right ([trans x], xs)
+tryParse (PREither []) _ = Left PError
+tryParse (PREither rules) line = if null results then Left PError
+                                                 else head results
+  where results = dropWhile isLeft $ map (`tryParse` line) rules
+tryParse (PRMany rule) line = applyUntill line
+  where applyUntill [] = Right ([], [])
+        applyUntill line = case tryParse rule line of
+                             Right (r, newline) -> case applyUntill newline of
+                               Right (rs, restoftheline) -> Right (r <> rs, restoftheline)
+                               Left err -> Left err
+                             Left err -> Right ([], line)
 
-parseUniversal :: [ParseRule] -> String -> [[ParseResult]]
-parseUniversal _ [] = []
-parseUniversal rules string = if not $ null anyErrors then error ("Error during parsing" <> show anyErrors) else filter (/=ResultOk) results : parseUniversal rules restofthestring
-  where (restofthestring, results) = mapAccumL (\a rule -> let (res, s) = parseNextToken rule a DoNotRetain in (s, res)) string rules
-        anyErrors = filter (\case ResultErr _ -> True
-                                  _ -> False) results
+parseUniversal :: [ParseRule a] -> ([a] -> b) -> String -> Either ParseError [b]
+parseUniversal _ trans[] = Right []
+parseUniversal rules trans stream = case go rules stream of
+                                Left err -> Left err
+                                Right (result, rest) -> case parseUniversal rules trans rest of
+                                                          Left err -> Left err
+                                                          Right results -> Right $ trans result : results
+  where go [] rest = Right ([], rest)
+        go (r:rs) rest = case tryParse r rest of
+                           Left err -> Left err
+                           Right (result, rest) -> case go rs rest of
+                                                     Left err -> Left err
+                                                     Right (results, newline) -> Right (result <> results, newline)

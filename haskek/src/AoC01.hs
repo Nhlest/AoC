@@ -1,6 +1,7 @@
 module AoC01 where
 
 import Util
+import Data.Either
 
 type AnswerGroup = [Int]
 type Product     = Int
@@ -22,11 +23,11 @@ aoc01s count target l@(x:xs) | count < 2  = Nothing
                                               Just (ys, yp)  -> Just (x:ys, x * yp)
 
 runAoC01 input = do
-  let arrOfTokens = parseUniversal [PRNumber, PRWhitespace] input
-  let arrToCheck = map (\[ResultNumber n] -> read n) arrOfTokens
+  let arrOfTokens = parseUniversal [PRNumber id, PRWhitespace] head input
+  let arrToCheck = fromRight [] arrOfTokens
   print $ aoc01 2020 arrToCheck
 
 runAoC01s input = do
-  let arrOfTokens = parseUniversal [PRNumber, PRWhitespace] input
-  let arrToCheck = map (\[ResultNumber n] -> read n) arrOfTokens
+  let arrOfTokens = parseUniversal [PRNumber id, PRWhitespace] head input
+  let arrToCheck = fromRight [] arrOfTokens
   print $ aoc01s 3 2020 arrToCheck
