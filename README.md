@@ -1,6 +1,7 @@
 # Advent of Code 2020 solutions by N`hlest
 
 Using haskell and elixir {first one as a priority, last one as far as i can manage}
+*Also a bit of bash + coreutils as a meme*
 
 ## How to run
 
