@@ -1,10 +1,8 @@
-{-# LANGUAGE LambdaCase, ConstraintKinds, InstanceSigs, ApplicativeDo #-}
 module Util where
 
 import System.IO
 import Data.Char
-import Data.List
-import Data.Either
+import Data.Functor
 
 xor True True   = False
 xor True False  = True
@@ -24,7 +22,7 @@ isWhitespace '\t' = True
 isWhitespace _    = False
 
 data ParseError = PError | PErrorS String deriving (Show, Eq)
-newtype ParseRule a = ParseRule { runParse :: (String -> Either ParseError (a, String)) }
+newtype ParseRule a = ParseRule { runParse :: String -> Either ParseError (a, String) }
 
 instance Functor ParseRule where
   fmap f (ParseRule r) = ParseRule (\s -> case r s of
@@ -39,8 +37,6 @@ instance Applicative ParseRule where
       Left err -> Left err
       Right (res2, rest2) -> Right (res res2, rest2))
 
-data Result2 = Result2 Int Int deriving Show
-
 number :: ParseRule Int
 number = ParseRule go
   where go [] = Left $ PErrorS "Couldn't parse number, encountered EOL"
@@ -54,29 +50,29 @@ token tok = ParseRule $ go tok
                                       Left err -> Left err
                                       Right (ts, rest) -> Right (t:ts, rest)
                          | otherwise = Left $ PErrorS $ "Couldn't parse token " <> tok <> " (" <> (t:ts) <> ")" <> "encountered " <> [x]
-whitespace :: ParseRule ()
-whitespace = ParseRule (\s -> Right ((), dropWhile isWhitespace s))
-word :: ParseRule String
-word = ParseRule $ Right . span isAlphaNum
 wordF :: (Char -> Bool) -> ParseRule String
 wordF filter = ParseRule $ Right . span filter
+word :: ParseRule String
+word = wordF isAlphaNum
+whitespace :: ParseRule ()
+whitespace = wordF isWhitespace $> ()
 char :: ParseRule Char
 char = ParseRule go
-  where go [] = Left $ PErrorS $ "Couldn't parse character, encountered EOL"
+  where go [] = Left $ PErrorS "Couldn't parse character, encountered EOL"
         go (x:xs) = Right (x, xs)
 anyOf :: [ParseRule a] -> ParseRule a
 anyOf rules = ParseRule $ go rules
   where go [] line = Left $ PErrorS $ "Exhausted or empty ruleset for anyOf parser " <> line
         go (r:rs) line = case runParse r line of
-                           Left err -> go rs line
+                           Left _ -> go rs line
                            Right result -> Right result
 many :: ParseRule a -> ParseRule [a]
 many rule = ParseRule $ go rule
-  where go rule [] = Right ([], [])
+  where go _ [] = Right ([], [])
         go rule line = case runParse rule line of
-                            Left err -> Right ([], line)
+                            Left _ -> Right ([], line)
                             Right (r, rest) -> case go rule rest of
-                                                 Left err -> Right ([r], rest)
+                                                 Left _ -> Right ([r], rest)
                                                  Right (rs, newline) -> Right (r:rs, newline)
 endofstream :: ParseRule ()
 endofstream = ParseRule go

@@ -8,11 +8,8 @@ import Data.Char
 data PassField = INVLD | BRK | BYR | IYR | EYR | HGT | HCL | ECL | PID | CID deriving (Show, Eq)
 type Document = [PassField]
 
--- |
 aoc04 :: [Document] -> Int
 aoc04 ilist = length $ filter (\a -> notElem INVLD a && (length a == 8 || length a == 7 && CID `notElem` a)) ilist
-
--- | a
 
 isHex h = isDigit h || (h >= 'a' && h <= 'f')
 

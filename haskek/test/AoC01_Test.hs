@@ -20,6 +20,6 @@ test_aoc01 = testGroup "UnitTest for AoC01" [
                                         | otherwise = case f targets list of
                                              Nothing -> True
                                              Just (ys, yp) ->
-                                               and [and $ ((flip elem) list) <$> ys,
-                                                    sum ys == targets,
-                                                    product ys == yp]
+                                                       and (flip elem list <$> ys)
+                                                    && sum ys == targets
+                                                    && product ys == yp
