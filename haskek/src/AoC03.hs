@@ -2,6 +2,7 @@ module AoC03 where
 
 import Util
 import Data.Either
+import Data.Functor
 
 import Data.Maybe
 
@@ -22,11 +23,23 @@ aoc03s m = product [aoc03 (sx, sy) m | (sx, sy) <- [(1,1), (3,1), (5,1), (7,1), 
 -- | a
 
 runAoC03 input = do
-  let arrOfTokens = parseUniversal [PRMany (PREither [PRToken "#" (const Tree), PRToken "." (const Empty)]), PRWhitespace] id input
+  let arrOfTokens = parseUniversal input $ do
+        line <- many $ anyOf [
+                  token "#" $> Tree,
+                  token "." $> Empty
+                ]
+        whitespace
+        pure line
   print $ aoc03 (3, 1) $ fromRight [] arrOfTokens
   pure ()
 
 runAoC03s input = do
-  let arrOfTokens = parseUniversal [PRMany (PREither [PRToken "#" (const Tree), PRToken "." (const Empty)]), PRWhitespace] id input
+  let arrOfTokens = parseUniversal input $ do
+        line <- many $ anyOf [
+                  token "#" $> Tree,
+                  token "." $> Empty
+                ]
+        whitespace
+        pure line
   print $ aoc03s $ fromRight [] arrOfTokens
   pure ()

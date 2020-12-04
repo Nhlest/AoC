@@ -25,13 +25,31 @@ aoc02s ((Policy lower higher chr, pw):ps) = isValid + aoc02s ps
 data PolicyToken = PolNum Int | PolChar Char | PolWord String
 
 runAoC02 input = do
-  let arrToCheck = parseUniversal [PRNumber PolNum, PRTokenSilent "-", PRNumber PolNum, PRWhitespace, PRChar PolChar, PRTokenSilent ":", PRWhitespace, PRWord PolWord, PRWhitespace] 
-                    (\[PolNum l, PolNum h, PolChar c, PolWord w] -> (Policy l h c, w)) input
+  let arrToCheck = parseUniversal input $ do 
+        l <- number
+        token "-"
+        h <- number
+        whitespace
+        c <- char
+        token ":"
+        whitespace
+        w <- word
+        whitespace
+        pure (Policy l h c, w)
   print $ aoc02 $ fromRight [] arrToCheck
   pure ()
 
 runAoC02s input = do
-  let arrToCheck = parseUniversal [PRNumber PolNum, PRTokenSilent "-", PRNumber PolNum, PRWhitespace, PRChar PolChar, PRTokenSilent ":", PRWhitespace, PRWord PolWord, PRWhitespace] 
-                    (\[PolNum l, PolNum h, PolChar c, PolWord w] -> (Policy l h c, w)) input
+  let arrToCheck = parseUniversal input $ do 
+        l <- number
+        token "-"
+        h <- number
+        whitespace
+        c <- char
+        token ":"
+        whitespace
+        w <- word
+        whitespace
+        pure (Policy l h c, w)
   print $ aoc02s $ fromRight [] arrToCheck
   pure ()

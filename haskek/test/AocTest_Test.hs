@@ -29,5 +29,5 @@ test2 = testGroup "UnitTests for aocTest" [
 
 testParser :: TestTree
 testParser = testGroup "UnitTests for Parser" [
-    testCase "[PAR] Should, indeed, parse" $ assertEqual "" (Right [1,2,3]) $ parseUniversal [PRNumber id, PRWhitespace] head "1 2 3"
+    -- testCase "[PAR] Should, indeed, parse" $ assertEqual "" (Right [1,2,3]) $ parseUniversal [PRNumber id, PRWhitespace] head "1 2 3"
   ]

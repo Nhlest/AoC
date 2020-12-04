@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ca7c4f3e33749b61dc732bcff6d6d525db86f321ec440a5573f737b6dbe06d2f
+-- hash: 29deb743871aae728827e426b01fbbbfc306cf147aee024c5ddec85d747f46ad
 
 name:           AoC
 version:        0.1.0.0
@@ -26,13 +26,14 @@ library
       AoC01
       AoC02
       AoC03
+      AoC04
       AoCTest
       Util
   other-modules:
       Paths_AoC
   hs-source-dirs:
       src
-  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes ApplicativeDo
   build-depends:
       base >=4.7 && <5
   default-language: Haskell2010
@@ -43,7 +44,7 @@ executable AoC-exe
       Paths_AoC
   hs-source-dirs:
       app
-  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes ApplicativeDo
   ghc-options: -threaded -rtsopts -O2
   build-depends:
       AoC
@@ -61,7 +62,7 @@ test-suite AoC-test
       Paths_AoC
   hs-source-dirs:
       test
-  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes
+  default-extensions: FlexibleContexts ScopedTypeVariables RankNTypes ApplicativeDo
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       AoC

@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, ConstraintKinds, InstanceSigs, ApplicativeDo #-}
 module Util where
 
 import System.IO
@@ -24,62 +24,76 @@ isWhitespace '\t' = True
 isWhitespace _    = False
 
 data ParseError = PError | PErrorS String deriving (Show, Eq)
-data ParseRule a = 
-    PRWhitespace
-  | PRToken      String (String -> a)
-  | PRTokenSilent        String
-  | PRWord              (String -> a)
-  | PRNumber            (Int    -> a)
-  | PRChar              (Char   -> a)
-  | PREither [ParseRule a]
-  | PRMany (ParseRule a)
+newtype ParseRule a = ParseRule { runParse :: (String -> Either ParseError (a, String)) }
 
-tryParse :: ParseRule a -> String -> Either ParseError ([a], String)
-tryParse PRWhitespace [] = Right ([], [])
-tryParse _ [] = Left PError
-tryParse PRWhitespace (x:xs) | isWhitespace x = Right ([], dropWhile isWhitespace xs)
-                             | otherwise      = Left PError
-tryParse (PRToken token trans) (xs) = case go token xs of
-                                        Just rest -> Right ([trans token], rest)
-                                        Nothing   -> Left PError
- where go [] rest = Just rest
-       go _ []    = Nothing
-       go (t:ts) (x:xs) | x == t    = go ts xs
-                        | otherwise = Nothing
-tryParse (PRTokenSilent token) (xs) = case go token xs of
-                                        Just rest -> Right ([], rest)
-                                        Nothing   -> Left PError
- where go [] rest = Just rest
-       go _ []    = Nothing
-       go (t:ts) (x:xs) | x == t    = go ts xs
-                        | otherwise = Nothing
-tryParse (PRWord trans) (x:xs) | isAlphaNum x = Right ([trans $ takeWhile isAlphaNum (x:xs)], dropWhile isAlphaNum (x:xs))
-                               | otherwise    = Left PError
-tryParse (PRNumber trans) (x:xs) | isNumber x = Right ([trans $ read $ takeWhile isNumber (x:xs)], dropWhile isNumber (x:xs))
-                                 | otherwise  = Left PError
-tryParse (PRChar trans) (x:xs) = Right ([trans x], xs)
-tryParse (PREither []) _ = Left PError
-tryParse (PREither rules) line = if null results then Left PError
-                                                 else head results
-  where results = dropWhile isLeft $ map (`tryParse` line) rules
-tryParse (PRMany rule) line = applyUntill line
-  where applyUntill [] = Right ([], [])
-        applyUntill line = case tryParse rule line of
-                             Right (r, newline) -> case applyUntill newline of
-                               Right (rs, restoftheline) -> Right (r <> rs, restoftheline)
-                               Left err -> Left err
-                             Left err -> Right ([], line)
+instance Functor ParseRule where
+  fmap f (ParseRule r) = ParseRule (\s -> case r s of
+    Left err -> Left err
+    Right (res, rest) -> Right (f res, rest))
 
-parseUniversal :: [ParseRule a] -> ([a] -> b) -> String -> Either ParseError [b]
-parseUniversal _ trans[] = Right []
-parseUniversal rules trans stream = case go rules stream of
-                                Left err -> Left err
-                                Right (result, rest) -> case parseUniversal rules trans rest of
-                                                          Left err -> Left err
-                                                          Right results -> Right $ trans result : results
+instance Applicative ParseRule where
+  pure a = ParseRule (\s -> Right (a, s))
+  (<*>) (ParseRule f) (ParseRule g) = ParseRule (\s -> case f s of
+    Left err -> Left err
+    Right (res, rest) -> case g rest of
+      Left err -> Left err
+      Right (res2, rest2) -> Right (res res2, rest2))
+
+data Result2 = Result2 Int Int deriving Show
+
+number :: ParseRule Int
+number = ParseRule go
+  where go [] = Left $ PErrorS "Couldn't parse number, encountered EOL"
+        go (x:xs) | isNumber x = Right (read $ takeWhile isNumber (x:xs), dropWhile isNumber (x:xs))
+                  | otherwise  = Left $ PErrorS $ "Couldn't parse number, encountered " <> [x]
+token :: String -> ParseRule String
+token tok = ParseRule $ go tok
   where go [] rest = Right ([], rest)
-        go (r:rs) rest = case tryParse r rest of
-                           Left err -> Left err
-                           Right (result, rest) -> case go rs rest of
-                                                     Left err -> Left err
-                                                     Right (results, newline) -> Right (result <> results, newline)
+        go ts [] = Left $ PErrorS $ "Couldn't parse token " <> tok <> " (" <> ts <> ")" <> "encountered EOL"
+        go (t:ts) (x:xs) | t == x = case go ts xs of
+                                      Left err -> Left err
+                                      Right (ts, rest) -> Right (t:ts, rest)
+                         | otherwise = Left $ PErrorS $ "Couldn't parse token " <> tok <> " (" <> (t:ts) <> ")" <> "encountered " <> [x]
+whitespace :: ParseRule ()
+whitespace = ParseRule (\s -> Right ((), dropWhile isWhitespace s))
+word :: ParseRule String
+word = ParseRule $ Right . span isAlphaNum
+wordF :: (Char -> Bool) -> ParseRule String
+wordF filter = ParseRule $ Right . span filter
+char :: ParseRule Char
+char = ParseRule go
+  where go [] = Left $ PErrorS $ "Couldn't parse character, encountered EOL"
+        go (x:xs) = Right (x, xs)
+anyOf :: [ParseRule a] -> ParseRule a
+anyOf rules = ParseRule $ go rules
+  where go [] line = Left $ PErrorS $ "Exhausted or empty ruleset for anyOf parser " <> line
+        go (r:rs) line = case runParse r line of
+                           Left err -> go rs line
+                           Right result -> Right result
+many :: ParseRule a -> ParseRule [a]
+many rule = ParseRule $ go rule
+  where go rule [] = Right ([], [])
+        go rule line = case runParse rule line of
+                            Left err -> Right ([], line)
+                            Right (r, rest) -> case go rule rest of
+                                                 Left err -> Right ([r], rest)
+                                                 Right (rs, newline) -> Right (r:rs, newline)
+endofstream :: ParseRule ()
+endofstream = ParseRule go
+  where go [] = Right ((), [])
+        go (x:_) = Left $ PErrorS $ "Expected end of stream, encountered " <> [x]
+
+parseUniversal :: String -> ParseRule a -> Either ParseError [a]
+parseUniversal stream parser = go stream
+  where go [] = Right []
+        go s = case runParse parser s of
+                  Left err -> Left err
+                  Right (res, rest) -> case go rest of
+                    Left err -> Left err
+                    Right res2 -> Right $ res : res2
+                  
+(?>) :: ParseRule a -> (a -> Bool) -> ParseRule a
+(?>) rule check = ParseRule go
+  where go str = case runParse rule str of
+          Left err -> Left err
+          ok@(Right (candidate, _)) -> if check candidate then ok else Left PError

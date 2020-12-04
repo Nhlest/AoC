@@ -11,5 +11,8 @@ aocTest (x:xs)       = less_than ++ [x] ++ greater_than
         greater_than = aocTest [y | y <- xs, y > x]
 
 runAoCTest input = do
-  let arrToSort = fromRight [] $ parseUniversal [PRNumber id, PRWhitespace] head input
+  let arrToSort = fromRight [] $ parseUniversal input $ do
+        a <- number
+        whitespace
+        pure a
   print $ aocTest arrToSort
