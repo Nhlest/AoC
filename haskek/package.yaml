@@ -17,7 +17,6 @@ default-extensions:
 - FlexibleContexts
 - ScopedTypeVariables
 - RankNTypes
-- ApplicativeDo
 
 library:
   source-dirs: src

@@ -16,22 +16,23 @@ isHex h = isDigit h || (h >= 'a' && h <= 'f')
 runAoC04 input = do
   let arrOfTokens = parseUniversal input $ do
         document <- many $ anyOf [
-              token "byr:" *> word *> spaceornewline $> BYR,
-              token "iyr:" *> word *> spaceornewline $> IYR,
-              token "eyr:" *> word *> spaceornewline $> EYR,
-              token "hgt:" *> word *> spaceornewline $> HGT,
-              token "hcl:" *> many (token "#") *> word *> spaceornewline $> HCL,
-              token "ecl:" *> many (token "#") *> word *> spaceornewline $> ECL,
-              token "pid:" *> many (token "#") *> word *> spaceornewline $> PID,
-              token "cid:" *> word *> spaceornewline $> CID
+              token "byr:" *> discardrest $> BYR,
+              token "iyr:" *> discardrest $> IYR,
+              token "eyr:" *> discardrest $> EYR,
+              token "hgt:" *> discardrest $> HGT,
+              token "hcl:" *> discardrest $> HCL,
+              token "ecl:" *> discardrest $> ECL,
+              token "pid:" *> discardrest $> PID,
+              token "cid:" *> discardrest $> CID
             ]
         anyOf [token "\n" $> (), endofstream]
         pure document
   print $ aoc04 $ fromRight [] arrOfTokens
   pure ()
  where spaceornewline = anyOf [token " " $> (), token "\n" $> (), endofstream]
+       discardrest = wordF (not . isWhitespace) *> spaceornewline
 
-data Unit = CM Int | IN Int | INV
+data Unit = CM Int | IN Int
 
 runAoC04s input = do
   let arrOfTokens = parseUniversal input $ do
@@ -43,8 +44,7 @@ runAoC04s input = do
               token "hcl:" *> anyOf [token "#" *> wordF isHex ?> hcl *> spaceornewline $> HCL, discardrest],
               token "ecl:" *> anyOf [word                     ?> ecl *> spaceornewline $> ECL, discardrest],
               token "pid:" *> anyOf [wordF isDigit            ?> pid *> spaceornewline $> PID, discardrest],
-              token "cid:" *> anyOf [wordF (not . isWhitespace)      *> spaceornewline $> CID
-              ]
+              token "cid:" *>        wordF (not . isWhitespace)      *> spaceornewline $> CID
             ]
         anyOf [token "\n" $> (), endofstream]
         pure document
@@ -58,13 +58,12 @@ runAoC04s input = do
        parseHeight = do
          h <- number
          t <- word
-         pure $ case t of
-           "cm" -> CM h
-           "in" -> IN h
-           _    -> INV
+         case t of
+           "cm" -> pure $ CM h
+           "in" -> pure $ IN h
+           _    -> failparse
        hgt (CM h) = h >= 150 && h <= 193
        hgt (IN h) = h >= 59  && h <= 76
-       hgt INV    = False
        hcl cl = length cl == 6
        ecl "amb" = True
        ecl "blu" = True

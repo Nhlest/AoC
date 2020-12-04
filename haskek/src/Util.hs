@@ -37,6 +37,12 @@ instance Applicative ParseRule where
       Left err -> Left err
       Right (res2, rest2) -> Right (res res2, rest2))
 
+instance Monad ParseRule where
+  (>>=) (ParseRule g) f = ParseRule go
+    where go str = case g str of
+                     Left err -> Left err
+                     Right (res, rest) -> runParse (f res) rest
+
 number :: ParseRule Int
 number = ParseRule go
   where go [] = Left $ PErrorS "Couldn't parse number, encountered EOL"
@@ -93,3 +99,5 @@ parseUniversal stream parser = go stream
   where go str = case runParse rule str of
           Left err -> Left err
           ok@(Right (candidate, _)) -> if check candidate then ok else Left PError
+
+failparse = ParseRule (\_ -> Left PError)
