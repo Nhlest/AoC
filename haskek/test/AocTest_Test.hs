@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, ApplicativeDo #-}
 module AocTest_Test where
 
 import Test.Tasty
@@ -6,6 +6,7 @@ import Test.Tasty.QuickCheck as QC
 import Test.Tasty.HUnit
 import Control.Monad
 import Data.Maybe
+import Data.Functor
 
 import AoCTest
 import Util
@@ -29,5 +30,23 @@ test2 = testGroup "UnitTests for aocTest" [
 
 testParser :: TestTree
 testParser = testGroup "UnitTests for Parser" [
-    -- testCase "[PAR] Should, indeed, parse" $ assertEqual "" (Right [1,2,3]) $ parseUniversal [PRNumber id, PRWhitespace] head "1 2 3"
+    testCase "[PAR] Should, indeed, parse" $ assertEqual "" (Right [1,2,3]) $ parseUniversal "1 2 3" $ do
+      a <- number
+      whitespace
+      pure a,
+    testCase "[PAR] More complex parsing case with control parsing rules" $ assertEqual "" (Right [[3,1,3],[1,6,1,1],[3]]) $ parseUniversal "1-2xxx1-2,xxx3-3xxxxxx,1-2" $ do
+      res <- many $ anyOf [
+          token "xxx" $> 1,
+          do
+            a <- number
+            token "-"
+            b <- number
+            pure $ a + b
+        ]
+      many $ token ","
+      pure res,
+    testCase "[PAR] Should fail" $ assertEqual "" (Left $ PErrorS $ "Couldn't parse number, encountered a") $ parseUniversal "asdf" $ do
+      a <- number
+      whitespace
+      pure a
   ]

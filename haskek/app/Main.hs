@@ -23,12 +23,16 @@ allModules = [
               ("aoc04s", runAoC04s, "aoc04")
               ]
 
+runCase (name, c) = do
+  putStrLn $ "-- Running case " <> name
+  c
+
 main = do 
   args <- getArgs
   let cases_to_run = case args of
-                       [] -> map (\(a,b,c) -> (runWithFile b c)) allModules
+                       [] -> map (\(a,b,c) -> (a, runWithFile b c)) allModules
                        x -> intersectBy x allModules
-  forM_ cases_to_run id
+  forM_ cases_to_run runCase
  where intersectBy _ [] = []
-       intersectBy to ((x, f, l):xs) | x `elem` to = (runWithFile f l) : intersectBy to xs
+       intersectBy to ((x, f, l):xs) | x `elem` to = (x, runWithFile f l) : intersectBy to xs
                                      | otherwise   = intersectBy to xs
