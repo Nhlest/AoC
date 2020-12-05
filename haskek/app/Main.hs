@@ -12,18 +12,20 @@ import AoC05
 import Util
 
 allModules = [
-              ("aoctest",  runAoCTest, "aoctest"),
-              ("aoctest2", runAoCTest, "aoctest"),
-              ("aoc01",    runAoC01,   "aoc01"), 
-              ("aoc01s",   runAoC01s,  "aoc01"),
-              ("aoc02",    runAoC02,   "aoc02"),
-              ("aoc02s",   runAoC02s,  "aoc02"),
-              ("aoc03",    runAoC03,   "aoc03"),
-              ("aoc03s",   runAoC03s,  "aoc03"),
-              ("aoc04",    runAoC04,   "aoc04"),
-              ("aoc04s",   runAoC04s,  "aoc04"),
-              ("aoc05",    runAoC05,   "aoc05"),
-              ("aoc05s",   runAoC05s,  "aoc05")
+              ("aoctest",  runAoCTest,  "aoctest"),
+              ("aoctest2", runAoCTest,  "aoctest"),
+              ("aoc01",    runAoC01,    "aoc01"), 
+              ("aoc01s",   runAoC01s,   "aoc01"),
+              ("aoc02",    runAoC02,    "aoc02"),
+              ("aoc02s",   runAoC02s,   "aoc02"),
+              ("aoc03",    runAoC03,    "aoc03"),
+              ("aoc03s",   runAoC03s,   "aoc03"),
+              ("aoc04",    runAoC04,    "aoc04"),
+              ("aoc04s",   runAoC04s,   "aoc04"),
+              ("aoc05",    runAoC05,    "aoc05"),
+              ("aoc05s",   runAoC05s,   "aoc05"),
+              ("aoc05alt", runAoC05alt, "aoc05"),
+              ("aoc05salt",runAoC05salt,"aoc05")
              ]
 
 runCase (name, c) = do

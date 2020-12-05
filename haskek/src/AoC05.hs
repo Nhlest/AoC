@@ -20,11 +20,11 @@ instance Binaryable LR where
 
 type Pass = ([FB], [LR])
 
-aoc05 :: [Pass] -> Int
-aoc05 = foldr (max . toPassID) 0
+aoc05 :: [Int] -> Int
+aoc05 = foldr max 0
 
-aoc05s :: [Pass] -> Int
-aoc05s passes = findMissing $ sort $ toPassID <$> passes
+aoc05s :: [Int] -> Int
+aoc05s passes = findMissing $ sort passes
   where findMissing (l:ls) = go l ls
         go l [] = error "can't find"
         go l (x:xs) | l + 1 == x = go x xs
@@ -40,18 +40,39 @@ fromBinary b = go $ reverse b
 
 runAoC05 input = do
   let arrOfTokens = parseUniversal input $ do
-        pass_fb <- many $ anyOf [
+        pass_fb <- (fmap $ fmap fromBinary) many $ anyOf [
                   token "F" $> F, token "B" $> B
                 ]
-        pass_lr <- many $ anyOf [
+        pass_lr <- (fmap $ fmap fromBinary) many $ anyOf [
                   token "L" $> L, token "R" $> R
                 ]
         whitespace
-        pure (pass_fb, pass_lr)
+        pure (pass_fb * 8 + pass_lr)
   print $ aoc05 $ fromRight [] arrOfTokens
-  pure ()
 
 runAoC05s input = do
+  let arrOfTokens = parseUniversal input $ do
+        pass_fb <- (fmap $ fmap fromBinary) many $ anyOf [
+                  token "F" $> F, token "B" $> B
+                ]
+        pass_lr <- (fmap $ fmap fromBinary) many $ anyOf [
+                  token "L" $> L, token "R" $> R
+                ]
+        whitespace
+        pure (pass_fb * 8 + pass_lr)
+  print $ aoc05s $ fromRight [] arrOfTokens
+
+aoc05alt :: [Pass] -> Int
+aoc05alt = foldr (max . toPassID) 0
+
+aoc05salt :: [Pass] -> Int
+aoc05salt passes = findMissing $ sort $ toPassID <$> passes
+  where findMissing (l:ls) = go l ls
+        go l [] = error "can't find"
+        go l (x:xs) | l + 1 == x = go x xs
+                    | otherwise = l + 1
+
+runAoC05alt input = do
   let arrOfTokens = parseUniversal input $ do
         pass_fb <- many $ anyOf [
                   token "F" $> F, token "B" $> B
@@ -61,5 +82,17 @@ runAoC05s input = do
                 ]
         whitespace
         pure (pass_fb, pass_lr)
-  print $ aoc05s $ fromRight [] arrOfTokens
+  print $ aoc05alt $ fromRight [] arrOfTokens
+  pure ()
+runAoC05salt input = do
+  let arrOfTokens = parseUniversal input $ do
+        pass_fb <- many $ anyOf [
+                  token "F" $> F, token "B" $> B
+                ]
+        pass_lr <- many $ anyOf [
+                  token "L" $> L, token "R" $> R
+                ]
+        whitespace
+        pure (pass_fb, pass_lr)
+  print $ aoc05salt $ fromRight [] arrOfTokens
   pure ()
