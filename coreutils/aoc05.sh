@@ -1,0 +1,1 @@
+cat aoc05.input | sed 's/B/1/g;s/F/0/g;s/R/1/g;s/L/0/g' | sort | xargs -I{} echo 'ibase=2;{}' | bc | tee /tmp/res | sed -n '1p;$p' | sed ':a;N;$!ba;s/\n/ /g' | xargs -n2 seq $1 $2 >/tmp/res2; cat /tmp/res{,2} | sort -n | uniq -u
