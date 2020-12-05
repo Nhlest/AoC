@@ -45,5 +45,7 @@ testParser = testGroup "UnitTests for Parser" [
     testCase "[PAR] Should fail" $ assertEqual "" (Left $ PErrorS "Couldn't parse number, encountered a") $ parseUniversal "asdf" $ do
       a <- number
       whitespace
-      pure a
+      pure a,
+    testCase "[PAR] Another parsing test" $ assertEqual "" (Right [2]) $ parseUniversal "2---" $ 
+      number <* token "-" <* token "-" <* token "-"
   ]
