@@ -30,7 +30,7 @@ executables:
     - -rtsopts
     - -O2
     dependencies:
-    - AoC
+    - AoC:library
 
 tests:
   AoC-test:
@@ -41,7 +41,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - AoC
+    - AoC:library
     - tasty
     - tasty-hunit
     - tasty-quickcheck
