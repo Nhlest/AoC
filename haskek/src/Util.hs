@@ -60,6 +60,11 @@ wordF :: (Char -> Bool) -> ParseRule String
 wordF filter = ParseRule $ Right . span filter
 word :: ParseRule String
 word = wordF isAlphaNum
+wordF1 filter = do
+  w <- wordF filter
+  case w of
+    [] -> failparse
+    k -> pure k
 whitespace :: ParseRule ()
 whitespace = wordF isWhitespace $> ()
 char :: ParseRule Char
@@ -80,6 +85,13 @@ many rule = ParseRule $ go rule
                             Right (r, rest) -> case go rule rest of
                                                  Left _ -> Right ([r], rest)
                                                  Right (rs, newline) -> Right (r:rs, newline)
+many1 :: ParseRule a -> ParseRule [a]
+many1 rule = do
+  a <- many rule
+  case a of
+    [] -> failparse
+    b -> pure b
+
 endofstream :: ParseRule ()
 endofstream = ParseRule go
   where go [] = Right ((), [])
