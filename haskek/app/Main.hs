@@ -31,6 +31,7 @@ allModules = [
               ("aoc06",    runAoC06,    "aoc06"),
               ("aoc06s",   runAoC06s,   "aoc06"),
               ("aoc07",    runAoC07,    "aoc07"),
+              ("aoc07c",   runAoC07c,  "aoc07"),
               ("aoc07s",   runAoC07s,   "aoc07")
              ]
 
