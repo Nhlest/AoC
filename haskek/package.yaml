@@ -17,6 +17,7 @@ default-extensions:
 - FlexibleContexts
 - ScopedTypeVariables
 - RankNTypes
+- PatternSynonyms
 
 library:
   source-dirs: src
