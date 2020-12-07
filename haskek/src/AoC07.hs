@@ -15,26 +15,18 @@ shinygold = BagColor "shiny" "gold"
 pattern SG = BagColor "shiny" "gold"
 
 aoc07 :: [BagC] -> Int
-aoc07 inpt = length . filter canContainShinyGold $ inpt
-  where canContainShinyGold (BagC SG _) = False
-        canContainShinyGold (BagC _ []) = False
-        canContainShinyGold (BagC _  l) = or $ 
-          hasShinyGold l:[canContainShinyGold next | next@(BagC color _) <- inpt, hasC color l]
-        hasC fcolor = any (\(Bag color _) -> color == fcolor)
-        hasShinyGold = hasC shinygold
-
--- Still shit but works, add caching on the very top level
-aoc07c :: [BagC] -> Int
-aoc07c bagdef = pred . length . filter fst $ [descend bagmap (M.insert shinygold True emptycache) a | (BagC a _) <- bagdef]
-  where bagmap = M.fromList [(color, colors) | (BagC color contains) <- bagdef, let colors = [col | (Bag col _) <- contains]]
-        emptycache = M.empty
+aoc07 bagdef = pred . length . filter id . M.elems $ foldl (\cache col -> uncurry (M.insert col) $ descend bagmap cache col) emptycache allcolors
+  where bagmap     = M.fromList [(c, cs) | (BagC c ls) <- bagdef, let cs = [col | (Bag col _) <- ls]]
+        emptycache = M.insert shinygold True M.empty
+        allcolors  = M.keys bagmap
 
 descend :: M.Map BagColor [BagColor] -> M.Map BagColor Bool -> BagColor -> (Bool, M.Map BagColor Bool)
 descend bagmap bagcache color = case M.lookup color bagcache of
-                                  Nothing -> foldl go (False, bagcache) (fromJust $ M.lookup color bagmap)
-                                  Just res -> (res, M.insert color res bagcache)
-  where go (res, bagcache) color = let (newres, newbagcache) = descend bagmap bagcache color
-                                   in (res || newres, newbagcache)
+  Nothing  -> foldl go (False, bagcache) (fromJust $ M.lookup color bagmap)
+  Just res -> (res, M.insert color res bagcache)
+  where go (res, bagcache) color = 
+         let (newres, newbagcache) = descend bagmap bagcache color
+         in  (res || newres, M.insert color newres newbagcache)
 
 aoc07s :: [BagC] -> Int
 aoc07s inpt = calculateInclusion shinygold
@@ -56,7 +48,7 @@ runAoC07s input = do
 
 runAoC07c input = do
   let arrOfTokens = parseUniversal input filterForToday
-  print $ aoc07c $ fromRight [] arrOfTokens
+  print $ aoc07s $ fromRight [] arrOfTokens
   
 filterForToday = do
   prefix1 <- word <* whitespace
