@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7ac08be740e104382bc1ae1b250da2a9707f273395d1a0ef93d0b7d93e96f527
+-- hash: 6134139b34eb830c3f68014ef97817dcbaeee7c351c2fe2d95dfb785dc6645fd
 
 name:           AoC
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       AoC05
       AoC06
       AoC07
+      AoC08
       AoCTest
       Util
   other-modules:
@@ -40,6 +41,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , vector
   default-language: Haskell2010
 
 executable AoC-exe
@@ -54,6 +56,7 @@ executable AoC-exe
       AoC
     , base >=4.7 && <5
     , containers
+    , vector
   default-language: Haskell2010
 
 test-suite AoC-test
@@ -67,6 +70,7 @@ test-suite AoC-test
       AoC05_Test
       AoC06_Test
       AoC07_Test
+      AoC08_Test
       AocTest_Test
       Paths_AoC
   hs-source-dirs:
@@ -80,4 +84,5 @@ test-suite AoC-test
     , tasty
     , tasty-hunit
     , tasty-quickcheck
+    , vector
   default-language: Haskell2010

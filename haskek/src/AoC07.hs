@@ -12,8 +12,6 @@ data BagColor = BagColor String String
 
 shinygold = BagColor "shiny" "gold"
 
-pattern SG = BagColor "shiny" "gold"
-
 aoc07 :: [BagC] -> Int
 aoc07 bagdef = pred . length . filter id . M.elems $ foldl (\cache col -> uncurry (M.insert col) $ descend bagmap cache col) emptycache allcolors
   where bagmap     = M.fromList [(c, cs) | (BagC c ls) <- bagdef, let cs = [col | (Bag col _) <- ls]]

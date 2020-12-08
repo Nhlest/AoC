@@ -13,6 +13,7 @@ description:         Advent of Code (but in haskell)
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- vector
 
 default-extensions:
 - FlexibleContexts
