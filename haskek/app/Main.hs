@@ -12,6 +12,7 @@ import AoC05
 import AoC06
 import AoC07
 import AoC08
+import AoC09
 import Util
 
 allModules = [
@@ -33,8 +34,10 @@ allModules = [
               ("aoc06s",   runAoC06s,   "aoc06"),
               ("aoc07",    runAoC07,    "aoc07"),
               ("aoc07s",   runAoC07s,   "aoc07"),
-              ("aoc08",    runAoC08,    "aoc08"),
-              ("aoc08s",   runAoC08s,   "aoc08")
+              ("aoc09s",   runAoC09s,   "aoc09"),
+              ("aoc09",    runAoC09,    "aoc09")
+              -- ("aoc08",    runAoC08,    "aoc08"),
+              -- ("aoc08s",   runAoC08s,   "aoc08")
              ]
 
 runCase (name, c) = do
