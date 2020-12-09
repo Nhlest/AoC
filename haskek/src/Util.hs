@@ -113,3 +113,22 @@ parseUniversal stream parser = go stream
           ok@(Right (candidate, _)) -> if check candidate then ok else Left PError
 
 failparse = ParseRule (\_ -> Left PError)
+
+inits :: [a] -> [[a]]
+inits = map reverse . scanl (flip (:)) []
+
+splitEverywhere :: [b] -> [([b], b, [b])]
+splitEverywhere xs =
+   map
+      (\(y, zs0) ->
+         case zs0 of
+            z:zs -> (y,z,zs)
+            [] -> error "splitEverywhere: empty list")
+      (init (zip (inits xs) (tails xs)))
+
+tails :: [a] -> [[a]]
+tails xt =
+   uncurry (:) $
+   case xt of
+      [] -> ([],[])
+      _:xs -> (xt, tails xs)

@@ -1,7 +1,7 @@
 {-# LANGUAGE TupleSections, DeriveFunctor, DerivingVia, MultiParamTypeClasses #-}
 module AoC08 where
 
-import Data.Set
+import Data.Set (empty, insert, member, Set)
 import Control.Monad.State.Class
 import Control.Monad.Reader.Class
 import Control.Monad.Writer.Class
@@ -10,18 +10,18 @@ import Control.Monad.Reader
 import Control.Monad.Writer.Strict
 import Control.Monad.Identity
 import qualified Data.Vector as V
+import Util
+import Data.Functor
+import Data.Either
+import Data.Maybe
 
-data OPCode = 
-    NOP Int
-  | ACC Int
-  | JMP Int
- deriving Show
 
-type Acc = Int
-type PC  = Int
+type OPCode = CPU TerminationState
+type Acc    = Int
+type PC     = Int
 type Prog             = V.Vector OPCode
 data CPUState         = CPUState { _acc::Acc, _pc::PC, _past::Set PC } deriving Show
-data TerminationState = StillRunning | Looped | OutOfBounds | OneAfterLast deriving Show
+data TerminationState = StillRunning | Looped | OutOfBounds | OneAfterLast deriving (Show, Eq)
 
 newtype StackTrace = StackTrace String 
   deriving (Semigroup, Monoid, Show) via String
@@ -43,62 +43,78 @@ opcode = do
 advance :: Int -> CPU ()
 advance n = modify (\s -> s {_pc = _pc s + n})
 
-progress :: CPU (TerminationState, Int)
+nop :: OPCode
+nop = checkTermination $ do
+    advance 1
+
+acc :: Int -> OPCode
+acc a = checkTermination $ do
+  modify (\s -> s {_acc = _acc s + a})
+  advance 1
+
+jmp :: Int -> CPU TerminationState
+jmp a = checkTermination $ do
+    advance a
+
+seen :: PC -> CPU Bool
+seen pc = do
+  CPUState _ _ past <- get
+  pure $ pc `member` past
+
+checkTermination :: CPU () -> CPU TerminationState
+checkTermination action = do
+  action
+  CPUState _ pc _ <- get
+  prog <- ask
+  loop <- seen pc
+  if      pc == V.length prog then pure OneAfterLast
+  else if pc >  V.length prog then pure OutOfBounds
+  else if loop                then pure Looped
+  else                             pure StillRunning
+
+saw :: PC -> CPU ()
+saw pc = do
+  modify (\s -> s {_past = pc `insert` _past s})
+
+progress :: CPU TerminationState
 progress = do
   op <- opcode
+  CPUState _ pc _ <- get
+  saw pc
+  op
+
+progressTill :: TerminationState -> CPU (Maybe Int)
+progressTill k = do
+  s <- progress
   CPUState acc _ _ <- get
+  if      s == StillRunning then progressTill k
+  else if k == s            then pure $ Just acc
+  else                           pure Nothing
 
-  case op of
-    NOP _ -> advance 1 >> pure (StillRunning, acc)
-    ACC a -> modify (\s -> s {_acc = acc + a}) >> pure (StillRunning, acc + a)
-    JMP a -> advance a >> pure (StillRunning, acc)
+emptycpu = CPUState 0 0 empty
 
-dostuff = runCPU opcode rd st
-  where st = CPUState 0 0 empty
-        rd = V.fromList [NOP 2]
+aoc08 :: Prog -> Int
+aoc08 prog = fromJust . fst . fst $ runCPU (progressTill Looped) prog emptycpu
 
+aoc08s :: [Prog] -> Int
+aoc08s progs = head $ catMaybes [fst . fst $ runCPU (progressTill OneAfterLast) p emptycpu | p <- progs]
 
+runAoC08 input = do
+  let arrOfTokens = parseUniversal input filterForToday
+  print $ aoc08 $ V.map fst $ V.fromList $ fromRight [] arrOfTokens
 
--- runCPU :: CPU (TerminationState, Int)
--- runCPU = do
---   ter <- step
---   case ter of
---     StillRunning -> runCPU
---     s            -> (s,) <$> acc
+runAoC08s input = do
+  let arrOfTokens = parseUniversal input filterForToday
+  print $ aoc08s $ map (V.fromList . (\(a, b, c) -> map fst a ++ [snd b] ++ map fst c)) $ splitEverywhere $ fromRight [] arrOfTokens
 
--- run = snd . execution runCPU
-
--- aoc08 :: Prog -> Int
--- aoc08 prog = snd . run $ cpu prog
-
--- aoc08s :: Prog -> Int
--- aoc08s prog = go 0
---  where go itoc | itoc >= V.length prog = error "can't find"
---                | otherwise           = case opcode of
---                  ACC _ -> go  $ succ itoc
---                  NOP a -> try $ JMP a
---                  JMP a -> try $ NOP a
---         where opcode = prog V.! itoc
---               try op = case run $ cpu (prog V.// [(itoc, op)]) of
---                    (OneAfterLast, acc) -> acc
---                    _                   -> go $ succ itoc
-
--- runAoC08 input = do
---   let arrOfTokens = parseUniversal input filterForToday
---   print $ aoc08 $ V.fromList $ fromRight [] arrOfTokens
-
--- runAoC08s input = do
---   let arrOfTokens = parseUniversal input filterForToday
---   print $ aoc08s $ V.fromList $ fromRight [] arrOfTokens
-
--- filterForToday = do
---   anyOf [
---     token "nop " *> signed <&> NOP,
---     token "acc " *> signed <&> ACC,
---     token "jmp " *> signed <&> JMP
---     ]
---  where signed = do
---          sign <- anyOf [token "+" $> "", token "-"]
---          n    <- word
---          anyOf [token "\n" $> (), endofstream]
---          pure $ read $ sign <> n
+filterForToday = do
+  anyOf [
+    token "nop " *> signed <&> (\a -> (nop,   jmp a)),
+    token "acc " *> signed <&> (\a -> (acc a, acc a)),
+    token "jmp " *> signed <&> (\a -> (jmp a, nop  ))
+    ]
+ where signed = do
+         sign <- anyOf [token "+" $> "", token "-"]
+         n    <- word
+         anyOf [token "\n" $> (), endofstream]
+         pure $ read $ sign <> n
