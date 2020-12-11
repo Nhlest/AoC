@@ -15,7 +15,6 @@ import Data.Functor
 import Data.Either
 import Data.Maybe
 
-
 type OPCode = CPU TerminationState
 type Acc    = Int
 type PC     = Int
@@ -23,16 +22,16 @@ type Prog             = V.Vector OPCode
 data CPUState         = CPUState { _acc::Acc, _pc::PC, _past::Set PC } deriving Show
 data TerminationState = StillRunning | Looped | OutOfBounds | OneAfterLast deriving (Show, Eq)
 
-newtype StackTrace = StackTrace String 
-  deriving (Semigroup, Monoid, Show) via String
+newtype StackTrace = StackTrace [String] deriving Show
+
+instance Semigroup StackTrace where
+  (<>) (StackTrace a) (StackTrace b) = StackTrace (take 5 $ b <> a)
+
+instance Monoid StackTrace where
+  mempty = StackTrace []
 
 newtype CPU a = CPU { runCPU :: Prog -> CPUState -> ((a, CPUState), StackTrace) }
-  deriving (Functor, Applicative, Monad, MonadReader Prog, MonadState CPUState) via (ReaderT Prog (StateT CPUState (Writer StackTrace)))
-
-instance MonadWriter StackTrace CPU where
-  tell what      = CPU (\prog state -> (((), state), what <> StackTrace "\n"))
-  listen (CPU a) = CPU (\prog state -> let ((res, st), tr) = a prog state in (((res, tr), st), tr <> StackTrace "\n"))
-  pass (CPU a)   = CPU (\prog state -> let (((res, func), newstate), tr) = a prog state in ((res, newstate), func tr <> StackTrace "\n"))
+  deriving (Functor, Applicative, Monad, MonadReader Prog, MonadState CPUState, MonadWriter StackTrace) via (ReaderT Prog (StateT CPUState (Writer StackTrace)))
 
 opcode :: CPU OPCode
 opcode = do
@@ -43,18 +42,26 @@ opcode = do
 advance :: Int -> CPU ()
 advance n = modify (\s -> s {_pc = _pc s + n})
 
+trace :: String -> CPU ()
+trace t = do
+  CPUState acc pc _ <- get
+  tell $ StackTrace ["[" <> show pc <> "] {" <> show acc <> "} " <> t]
+
 nop :: OPCode
 nop = checkTermination $ do
-    advance 1
+  trace "nop"
+  advance 1
 
 acc :: Int -> OPCode
 acc a = checkTermination $ do
+  trace $ "acc " <> show a
   modify (\s -> s {_acc = _acc s + a})
   advance 1
 
 jmp :: Int -> CPU TerminationState
 jmp a = checkTermination $ do
-    advance a
+  trace $ "jmp " <> show a
+  advance a
 
 seen :: PC -> CPU Bool
 seen pc = do
@@ -67,9 +74,9 @@ checkTermination action = do
   CPUState _ pc _ <- get
   prog <- ask
   loop <- seen pc
-  if      pc == V.length prog then pure OneAfterLast
-  else if pc >  V.length prog then pure OutOfBounds
-  else if loop                then pure Looped
+  if      pc == V.length prog then trace "!!OneAfterLast!!" >> pure OneAfterLast
+  else if pc >  V.length prog then trace "!!OutOfBounds!!" >> pure OutOfBounds
+  else if loop                then trace "!!Looped!!" >> pure Looped
   else                             pure StillRunning
 
 saw :: PC -> CPU ()
@@ -96,16 +103,20 @@ emptycpu = CPUState 0 0 empty
 aoc08 :: Prog -> Int
 aoc08 prog = fromJust . fst . fst $ runCPU (progressTill Looped) prog emptycpu
 
+
+aoc08b prog = let StackTrace a = snd $ runCPU (progressTill Looped) prog emptycpu in unlines $ reverse a
+aoc08sb progs = let StackTrace a = snd $ head $ filter (\((a, b), c) -> isJust a) [runCPU (progressTill OneAfterLast) p emptycpu | p <- progs] in unlines $ reverse a
+
 aoc08s :: [Prog] -> Int
 aoc08s progs = head $ catMaybes [fst . fst $ runCPU (progressTill OneAfterLast) p emptycpu | p <- progs]
 
 runAoC08 input = do
   let arrOfTokens = parseUniversal input filterForToday
-  print $ aoc08 $ V.map fst $ V.fromList $ fromRight [] arrOfTokens
+  putStrLn $ aoc08b $ V.map fst $ V.fromList $ fromRight [] arrOfTokens
 
 runAoC08s input = do
   let arrOfTokens = parseUniversal input filterForToday
-  print $ aoc08s $ map (V.fromList . (\(a, b, c) -> map fst a ++ [snd b] ++ map fst c)) $ splitEverywhere $ fromRight [] arrOfTokens
+  putStrLn $ aoc08sb $ map (V.fromList . (\(a, b, c) -> map fst a ++ [snd b] ++ map fst c)) $ splitEverywhere $ fromRight [] arrOfTokens
 
 filterForToday = do
   anyOf [
