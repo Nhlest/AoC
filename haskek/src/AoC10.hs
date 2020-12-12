@@ -24,7 +24,7 @@ runAoC10 input = do
 runAoC10s input = do
   let arrOfTokens = parseUniversal input filterForToday
   let arr = fromRight [] arrOfTokens
-  print $ aoc10s $ (sort arr)
+  print $ aoc10s $ sort arr
 
 filterForToday = do
   number <* whitespace
