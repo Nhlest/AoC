@@ -52,5 +52,3 @@ filterForToday = do
   c <- read <$> anyOf (map (token . pure) "NESWFLR")
   n <- number
   pure (c,n)
-  
-    
