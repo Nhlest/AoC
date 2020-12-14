@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: faa946419f75dafd040e46bcd9d1198bb8b7f80864ce01f87c57f5c273b6bb13
+-- hash: c6097e61be830f1b9c4f45c2d38bbe57914e33c25a1568db6305fbbb751d4f56
 
 name:           AoC
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       AoC11
       AoC12
       AoC13
+      AoC14
       AoCTest
       Util
   other-modules:

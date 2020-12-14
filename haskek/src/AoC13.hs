@@ -22,7 +22,7 @@ aoc13s :: Schedule -> Integer
 aoc13s (_, first:xs) = go 0 (fromJust first) z
   where z = map (\(md, dv) -> (dv - (md `mod` dv), dv)) $ catMaybesBySnd $ zip [1..] xs
         go prev _ []                    = prev
-        go prev mul ((tomod, todiv):xs) = 
+        go prev mul ((tomod, todiv):xs) =
           let next = head [cnd | i<-[0..], let cnd = i * mul + prev, cnd `mod` todiv == tomod]
           in  go next (mul*todiv) xs
 
