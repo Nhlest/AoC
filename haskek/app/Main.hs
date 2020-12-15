@@ -18,6 +18,17 @@ import AoC11
 import AoC12
 import AoC13
 import AoC14
+import AoC15
+import AoC16
+import AoC17
+import AoC18
+import AoC19
+import AoC20
+import AoC21
+import AoC22
+import AoC23
+import AoC24
+import AoC25
 import Util
 
 allModules = [
@@ -52,7 +63,29 @@ allModules = [
               ("aoc13s",   runAoC13s,   "aoc13"),
               ("aoc13",    runAoC13,    "aoc13"),
               ("aoc14s",   runAoC14s,   "aoc14"),
-              ("aoc14",    runAoC14,    "aoc14")
+              ("aoc14",    runAoC14,    "aoc14"),
+              ("aoc15s",   runAoC15s,   "aoc15"),
+              ("aoc15",    runAoC15,    "aoc15"),
+              ("aoc16",    runAoC16,    "aoc16"),
+              ("aoc16s",   runAoC16s,   "aoc16"),
+              ("aoc17s",   runAoC17s,   "aoc17"),
+              ("aoc17",    runAoC17,    "aoc17"),
+              ("aoc18s",   runAoC18s,   "aoc18"),
+              ("aoc18",    runAoC18,    "aoc18"),
+              ("aoc19s",   runAoC19s,   "aoc19"),
+              ("aoc19",    runAoC19,    "aoc19"),
+              ("aoc20s",   runAoC20s,   "aoc20"),
+              ("aoc20",    runAoC20,    "aoc20"),
+              ("aoc21s",   runAoC21s,   "aoc21"),
+              ("aoc21",    runAoC21,    "aoc21"),
+              ("aoc22s",   runAoC22s,   "aoc22"),
+              ("aoc22",    runAoC22,    "aoc22"),
+              ("aoc23s",   runAoC23s,   "aoc23"),
+              ("aoc23",    runAoC23,    "aoc23"),
+              ("aoc24s",   runAoC24s,   "aoc24"),
+              ("aoc24",    runAoC24,    "aoc24"),
+              ("aoc25s",   runAoC25s,   "aoc25"),
+              ("aoc25",    runAoC25,    "aoc25")
              ]
 
 runCase (name, c) = do
